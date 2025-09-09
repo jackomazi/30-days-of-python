@@ -62,3 +62,103 @@ print(find_most_frequent_words('./day_19/michelle_obama_speech.txt', 10))
 print(find_most_frequent_words('./day_19/donald_speech.txt', 10))
 print(find_most_frequent_words('./day_19/melina_trump_speech.txt', 10))
 
+
+print("="*50)
+
+# Extract all incoming email addresses as a list from the email_exchange_big.txt file.
+
+with open('./day_19/email_exchanges_big.txt') as f:
+    lines = f.read().splitlines()
+    email_addresses = []
+    for line in lines:
+        # check if line starts with 'From: '
+        if line.startswith('From: '):
+            print(line.split(' '))
+            email = line.split(' ')[1]
+            email_addresses.append(email)
+
+    #print(email_addresses)
+print("="*50)
+
+# Write a python application that checks similarity between two texts. 
+# It takes a file or a string as a parameter and it will evaluate the similarity of the two texts. 
+# For instance check the similarity between the transcripts of Michelle's and Melina's speech. 
+# You may need a couple of functions, 
+# function to clean the text(clean_text), 
+# function to remove support words(remove_support_words) and 
+# finally to check the similarity(check_text_similarity). 
+# List of stop words are in the data directory
+
+import stop_words
+import re
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+def clean_text(text):
+    text = text.lower()
+    text = re.sub(r'[^\w\s]', '', text) # rimuove caratteri che non sono lettere o spazi [^] è la negazione
+    return text
+
+def remove_stop_words(text):
+    # stop words are in a python file stop_words.py
+    stop_words_list = stop_words.stop_words
+    words = text.split()
+    words = [word for word in words if word not in stop_words_list]
+    return ' '.join(words)
+
+def similarity(file1, file2):
+    with open(file1, 'r') as f:
+        file1 = f.read(50)
+        
+    with open(file2,'r') as f:
+        file2 = f.read(50)
+    file1 = clean_text(file1)
+    file2 = clean_text(file2)
+    file1 = remove_stop_words(file1)
+    file2 = remove_stop_words(file2)
+    docs = [file1, file2]
+    vectorizer = TfidfVectorizer()
+    tfidf = vectorizer.fit_transform(docs)
+
+    sim = cosine_similarity(tfidf[0], tfidf[1])
+    
+    return sim[0][0]
+
+
+# print(similarity('./day_19/michelle_obama_speech.txt','./day_19/melina_trump_speech.txt'))
+
+print("="*50)
+
+# Find the 10 most repeated words in the romeo_and_juliet.txt
+print(find_most_frequent_words('./day_19/romeo_and_juliet.txt',10))
+
+print("="*50)
+
+# Read the hacker news csv file and find out: 
+# a) Count the number of lines containing python or Python 
+# b) Count the number lines containing JavaScript, javascript or Javascript 
+# c) Count the number lines containing Java and not JavaScript
+import csv
+with open('./day_19/hacker_news.csv', 'r') as f:
+    csv_reader = csv.reader(f, delimiter=',') # w use, reader method to read csv
+    line_count = 0
+    python_count = 0
+    js_count = 0
+    java_count = 0
+    for row in csv_reader:
+        if line_count == 0:
+            print(f'Column names are {", ".join(row)}')
+            line_count += 1
+        else:
+            if re.search('python|Python', " ".join(row)) != None:
+                python_count += 1
+            if re.search('JavaScript|javascript|Javascript', " ".join(row)) != None:
+                js_count += 1
+            if re.search('Java', " ".join(row)) != None and re.search('Javascript', " ".join(row)) == None:
+                java_count += 1
+            line_count += 1
+
+    print(f'Number of lines:  {line_count}')
+    print(f"Number of python/Python lines: {python_count}")
+    print(f"Number of JavaScript/javascript/Javascript lines: {js_count}")
+    print(f"Number of Java and not Javascript lines: {java_count}")
